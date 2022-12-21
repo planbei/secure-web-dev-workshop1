@@ -15,7 +15,7 @@ console.log('🚀 It Works!');
 // 📝 TODO: Number of filming locations
 // 1. Make the function return the number of filming locations
 function getFilmingLocationsNumber () {
-	return ''
+	return filmingLocations.length;
 }
 console.log(`There is ${getFilmingLocationsNumber()} filming locations in Paris`)
 
@@ -23,17 +23,28 @@ console.log(`There is ${getFilmingLocationsNumber()} filming locations in Paris`
 // 1. Implement the function
 // 2. Log the first and last item in array
 function sortFilmingLocationsByStartDate () {
-	return ''
+	const comparison = (elemA, elemB) => new Date(elemA["fields"]["date_debut"]) - new Date(elemB["fields"]["date_debut"])
+	return filmingLocations.sort(comparison)
+
 }
-console.log(``)
+// let temparray = sortFilmingLocationsByStartDate()
+// console.log(temparray[0],temparray[10000])
 
 // 📝 TODO: Number of filming locations in 2020 only
 // 1. Make the function return the number of filming locations in 2020 only
 // 2. Log the result
 function getFilmingLocationsNumber2020 () {
-	return ''
+	let count = 0
+	const tab = []
+	for(const elem of filmingLocations) {
+		if( elem["fields"]["annee_tournage"]==="2020" && !(tab.find(x => x === elem["fields"]["adresse_lieu"] ))) {
+			tab.push(elem["fields"]["adresse_lieu"]);
+			count++;
+		}
+	}
+	return count;
 }
-console.log()
+console.log("The number of filming locations in 2020 is ",getFilmingLocationsNumber2020())
 
 // 📝 TODO: Number of filming locations per year
 // 1. Implement the function, the expected result is an object with years as
@@ -44,9 +55,24 @@ console.log()
 //    }
 // 2. Log the result
 function getFilmingLocationsNumberPerYear () {
-	return {}
+	const filmingLocationsPerYear = {}
+	const result = {}
+	for (const elem of filmingLocations){
+		if (filmingLocationsPerYear[elem["fields"]["annee_tournage"]] === undefined ) {
+
+			filmingLocationsPerYear[elem["fields"]["annee_tournage"]] = [elem["fields"]["adresse_lieu"]];
+			result[elem["fields"]["annee_tournage"]] = 1;
+
+		} else if( !( filmingLocationsPerYear[elem["fields"]["annee_tournage"]].find(x => x === elem["fields"]["adresse_lieu"]) ) ) {
+
+			filmingLocationsPerYear[elem["fields"]["annee_tournage"]].push(elem["fields"]["adresse_lieu"]);
+			result[elem["fields"]["annee_tournage"]] += 1;
+
+		}
+	}
+	return result;
 }
-console.log()
+console.log(getFilmingLocationsNumberPerYear())
 
 // 📝 TODO: Number of filming locations by district (arrondissement)
 // 1. Implement the function, the expected result is an object with
@@ -56,33 +82,78 @@ console.log()
 //      '75014': 1234,
 //    }
 // 2. Log the result
-function getFilmingLocationsNumberPerDistrict () {
-	return {}
+function getFilmingLocationsNumberPerDistrict() {
+	const filmingLocationsPerDistrict = {}
+	const result = {}
+	for (const elem of filmingLocations){
+		if (filmingLocationsPerDistrict[elem["fields"]["ardt_lieu"]] === undefined ) {
+
+			filmingLocationsPerDistrict[elem["fields"]["ardt_lieu"]] = [elem["fields"]["adresse_lieu"]];
+			result[elem["fields"]["ardt_lieu"]] = 1;
+
+		} else if( !( filmingLocationsPerDistrict[elem["fields"]["ardt_lieu"]].find(x => x === elem["fields"]["adresse_lieu"]) ) ) {
+
+			filmingLocationsPerDistrict[elem["fields"]["ardt_lieu"]].push(elem["fields"]["adresse_lieu"]);
+			result[elem["fields"]["ardt_lieu"]] += 1;
+
+		}
+	}
+	return result;
 }
-console.log()
+console.log(getFilmingLocationsNumberPerDistrict())
 
 // 📝 TODO: Number of locations per film, sorted in descending order
 // 1. Implement the function, result expected as an array of object like:
 //    const result = [{film: 'LRDM - Patriot season 2', locations: 12}, {...}]
 // 2. Log the first and last item of the array
 function getFilmLocationsByFilm () {
-	return []
+
+	const result = []
+
+	for (const film of filmingLocations){
+
+		let alreadyInserted = false
+		for (const elem of result){
+			if (elem['film'] === film["fields"]["nom_tournage"]) {
+				elem['locations'] += 1
+				alreadyInserted = true
+				break
+			}
+		}
+		if (!alreadyInserted) {
+			result.push({'film':film["fields"]["nom_tournage"], 'locations':1});
+		}
+	}
+	const condition = (a,b) => b['locations'] - a['locations']
+	result.sort(condition)
+	return result;
 }
-console.log()
+
+let nbLocationsPerFilm = getFilmLocationsByFilm()
+console.log(nbLocationsPerFilm[0],nbLocationsPerFilm[nbLocationsPerFilm.length-1])
 
 // 📝 TODO: Number of different films
 // 1. Implement the function
 // 2. Log the result
 function getNumberOfFilms() {
-	return ''
+	return nbLocationsPerFilm.length
 }
+console.log("number of different movies :",getNumberOfFilms())
 
 // 📝 TODO: All the filming locations of `LRDM - Patriot season 2`
 // 1. Return an array with all filming locations of LRDM - Patriot season 2
 // 2. Log the result
 function getArseneFilmingLocations () {
-	return []
+	let locations = []
+	for(const elem of filmingLocations) {
+		if(elem["fields"]["nom_tournage"]==="LRDM - Patriot season 2") {
+			locations.push(elem["fields"]["adresse_lieu"])
+		}
+	}
+	return locations
 }
+
+console.log("Adresses pour LRDM - Patriot season 2",getArseneFilmingLocations())
 
 // 📝 TODO: Tous les arrondissement des lieux de tournage de nos films favoris
 //  (favoriteFilms)
@@ -90,8 +161,20 @@ function getArseneFilmingLocations () {
 //    parameter. e.g. :
 //    const films = { 'LRDM - Patriot season 2': ['75013'] }
 // 2. Log the result
-function getFavoriteFilmsLocations (favoriteFilmsNames) {
-	return []
+function getFavoriteFilmsLocations(favoriteFilmsNames) {
+	let result = []
+	for(const elem of favoriteFilmsNames) {
+		result.push({"film":elem,"locations":[]})
+	}
+	for(const elem of filmingLocations) {
+		for(const film of result) {
+			if(elem["fields"]["nom_tournage"]===film["film"] && !(film["locations"].find(x => x === elem["fields"]["ardt_lieu"]))) {
+				film["locations"].push(elem["fields"]["ardt_lieu"])
+				break
+			}
+		}
+	}
+	return result
 }
 const favoriteFilms =
 	[
@@ -100,6 +183,8 @@ const favoriteFilms =
 		'Emily in Paris',
 	]
 
+console.log("Locations of our favorite films :", getFavoriteFilmsLocations(favoriteFilms))
+
 // 📝 TODO: All filming locations for each film
 //     e.g. :
 //     const films = {
@@ -107,7 +192,19 @@ const favoriteFilms =
 //        'Une jeune fille qui va bien': [{...}]
 //     }
 function getFilmingLocationsPerFilm () {
-	return { }
+	let result = []
+	for(const elem of filmingLocations) {
+		result.push({"film":elem,"locations":[]})
+	}
+	for(const elem of filmingLocations) {
+		for(const film of result) {
+			if(elem["fields"]["nom_tournage"]===film["film"]) {
+				film["locations"].push(elem["fields"]["adresse_lieu"])
+				break
+			}
+		}
+	}
+	return result
 }
 
 // 📝 TODO: Count each type of film (Long métrage, Série TV, etc...)
